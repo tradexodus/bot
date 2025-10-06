@@ -87,9 +87,7 @@ async def get_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(f"📍 Chat ID: `{chat_id}`", parse_mode="Markdown")
 
 async def main():
-   app = ApplicationBuilder().token("8254814436:AAE7P01MwjmIO85cNJ_CzPb7HexiZlnkyP4").build()
-
-
+    app = ApplicationBuilder().token("8254814436:AAE7P01MwjmIO85cNJ_CzPb7HexiZlnkyP4").build()
 
     app.add_handler(CommandHandler("in", in_command))
     app.add_handler(CommandHandler("out", out_command))
@@ -103,7 +101,6 @@ async def main():
 
 if __name__ == "__main__":
     import nest_asyncio
-    import asyncio
-
     nest_asyncio.apply()
+    import asyncio
     asyncio.get_event_loop().run_until_complete(main())
