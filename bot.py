@@ -77,10 +77,14 @@ async def send_weekly_report(app):
     await app.bot.send_message(chat_id=GROUP_ID, text=text, parse_mode="Markdown")
 
 def schedule_weekly_report(app):
-    scheduler = BackgroundScheduler(timezone="Asia/Riyadh")  # غيّر حسب منطقتك
+    scheduler = BackgroundScheduler(timezone="Asia/Riyadh")
     scheduler.add_job(lambda: asyncio.create_task(send_weekly_report(app)),
                       'cron', day_of_week='fri', hour=18, minute=0)
     scheduler.start()
+
+async def get_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    chat_id = update.message.chat_id
+    await update.message.reply_text(f"📍 Chat ID: `{chat_id}`", parse_mode="Markdown")
 
 async def main():
     app = ApplicationBuilder().token("YOUR_BOT_TOKEN_HERE").build()
@@ -88,23 +92,12 @@ async def main():
     app.add_handler(CommandHandler("in", in_command))
     app.add_handler(CommandHandler("out", out_command))
     app.add_handler(CommandHandler("week", week))
+    app.add_handler(CommandHandler("getid", get_id))
 
-    # تفعيل الجدولة الأسبوعية
     schedule_weekly_report(app)
 
     print("✅ البوت يعمل... التقرير الأسبوعي سيُرسل كل جمعة الساعة 6:00 مساءً")
     await app.run_polling()
 
 if __name__ == "__main__":
-    asyncio.run(main())
-
-from telegram import Update
-from telegram.ext import CommandHandler, CallbackContext
-
-def get_id(update: Update, context: CallbackContext):
-    chat_id = update.message.chat_id
-    update.message.reply_text(f"📍 Chat ID: {chat_id}")
-
-# أضف هذا السطر مع باقي الـ handlers
-application.add_handler(CommandHandler("getid", get_id))
-
+    asyncio.get_event_loop().run_until_complete(main())
