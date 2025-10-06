@@ -97,3 +97,14 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+
+from telegram import Update
+from telegram.ext import CommandHandler, CallbackContext
+
+def get_id(update: Update, context: CallbackContext):
+    chat_id = update.message.chat_id
+    update.message.reply_text(f"📍 Chat ID: {chat_id}")
+
+# أضف هذا السطر مع باقي الـ handlers
+application.add_handler(CommandHandler("getid", get_id))
+
