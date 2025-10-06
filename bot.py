@@ -2,10 +2,12 @@ from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, MessageHandler, filters
 from datetime import datetime, timedelta
 from apscheduler.schedulers.background import BackgroundScheduler
+import pytz
 import json, os, asyncio
 
 DATA_FILE = "attendance.json"
 GROUP_ID = -1001234567890  # ضع هنا ID القروب الذي تريد إرسال التقرير إليه
+TZ = pytz.timezone("Asia/Riyadh")  # توقيت الرياض
 
 def load_data():
     return json.load(open(DATA_FILE, "r")) if os.path.exists(DATA_FILE) else {}
@@ -20,37 +22,38 @@ def parse_duration(d):
 async def in_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user.username or update.effective_user.full_name
     data = load_data()
-    today = datetime.now().strftime("%Y-%m-%d")
+    now = datetime.now(TZ)
+    today = now.strftime("%Y-%m-%d")
     data.setdefault(user, {})
-    data[user][today] = {"in": datetime.now().isoformat()}
+    data[user][today] = {"in": now.isoformat()}
     save_data(data)
-    await update.message.reply_text(f"✅ تم تسجيل دخولك الساعة {datetime.now().strftime('%H:%M:%S')}")
+    await update.message.reply_text(f"✅ تم تسجيل دخولك الساعة {now.strftime('%H:%M:%S')}")
 
 async def out_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user.username or update.effective_user.full_name
     data = load_data()
-    today = datetime.now().strftime("%Y-%m-%d")
+    now = datetime.now(TZ)
+    today = now.strftime("%Y-%m-%d")
 
     if user not in data or today not in data[user] or "in" not in data[user][today]:
         await update.message.reply_text("⚠️ لم يتم تسجيل دخولك أولاً (in).")
         return
 
     time_in = datetime.fromisoformat(data[user][today]["in"])
-    time_out = datetime.now()
-    duration = time_out - time_in
+    duration = now - time_in
 
-    data[user][today]["out"] = time_out.isoformat()
+    data[user][today]["out"] = now.isoformat()
     data[user][today]["duration"] = str(duration).split(".")[0]
     save_data(data)
 
     await update.message.reply_text(
-        f"👋 تم تسجيل خروجك الساعة {time_out.strftime('%H:%M:%S')}\n"
+        f"👋 تم تسجيل خروجك الساعة {now.strftime('%H:%M:%S')}\n"
         f"⏱ مدة دوامك اليوم: {duration}"
     )
 
 async def week_report_text():
     data = load_data()
-    now = datetime.now()
+    now = datetime.now(TZ)
     week_start = now - timedelta(days=6)
     text = "📆 **تقرير الأسبوع الأخير** 📆\n\n"
 
@@ -86,7 +89,6 @@ async def get_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat_id = update.message.chat_id
     await update.message.reply_text(f"📍 Chat ID: `{chat_id}`", parse_mode="Markdown")
 
-# هذا الـ handler الجديد للتعامل مع النصوص بدون /
 async def text_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = update.message.text.lower()
     if text == "in":
@@ -108,7 +110,7 @@ async def main():
 
     schedule_weekly_report(app)
 
-    print("✅ البوت يعمل... التقرير الأسبوعي سيُرسل كل جمعة الساعة 6:00 مساءً")
+    print("✅ البوت يعمل... الوقت مضبوط حسب توقيت الرياض والتقرير الأسبوعي كل جمعة الساعة 6:00 مساءً")
     await app.run_polling()
 
 if __name__ == "__main__":
