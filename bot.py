@@ -87,7 +87,7 @@ async def get_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(f"📍 Chat ID: `{chat_id}`", parse_mode="Markdown")
 
 async def main():
-   app = ApplicationBuilder().token(8254814436:AAE7P01MwjmIO85cNJ_CzPb7HexiZlnkyP4).build()
+   app = ApplicationBuilder().token("8254814436:AAE7P01MwjmIO85cNJ_CzPb7HexiZlnkyP4").build()
 
 
 
