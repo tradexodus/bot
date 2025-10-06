@@ -68,4 +68,51 @@ async def week_report_text():
 
     return text or "لا يوجد بيانات للأسبوع الحالي."
 
-async def week(update: Upd
+async def week(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    text = await week_report_text()
+    await update.message.reply_text(text)
+
+async def send_weekly_report(app):
+    text = await week_report_text()
+    await app.bot.send_message(chat_id=GROUP_ID, text=text, parse_mode="Markdown")
+
+def schedule_weekly_report(app):
+    scheduler = BackgroundScheduler(timezone="Asia/Riyadh")
+    scheduler.add_job(lambda: asyncio.create_task(send_weekly_report(app)),
+                      'cron', day_of_week='fri', hour=18, minute=0)
+    scheduler.start()
+
+async def get_id(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    chat_id = update.message.chat_id
+    await update.message.reply_text(f"📍 Chat ID: `{chat_id}`", parse_mode="Markdown")
+
+# هذا الـ handler الجديد للتعامل مع النصوص بدون /
+async def text_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    text = update.message.text.lower()
+    if text == "in":
+        await in_command(update, context)
+    elif text == "out":
+        await out_command(update, context)
+
+async def main():
+    app = ApplicationBuilder().token("8254814436:AAE7P01MwjmIO85cNJ_CzPb7HexiZlnkyP4").build()
+
+    # أوامر بالـ /
+    app.add_handler(CommandHandler("in", in_command))
+    app.add_handler(CommandHandler("out", out_command))
+    app.add_handler(CommandHandler("week", week))
+    app.add_handler(CommandHandler("getid", get_id))
+
+    # التعامل مع النصوص العادية بدون /
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, text_handler))
+
+    schedule_weekly_report(app)
+
+    print("✅ البوت يعمل... التقرير الأسبوعي سيُرسل كل جمعة الساعة 6:00 مساءً")
+    await app.run_polling()
+
+if __name__ == "__main__":
+    import nest_asyncio
+    nest_asyncio.apply()
+    import asyncio
+    asyncio.get_event_loop().run_until_complete(main())
