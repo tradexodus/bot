@@ -153,7 +153,7 @@ async def text_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # ------------------------- MAIN -------------------------
 async def main():
-    app = ApplicationBuilder().token("ضع_توكن_البوت_هنا").build()
+    app = ApplicationBuilder().token("8254814436:AAE7P01MwjmIO85cNJ_CzPb7HexiZlnkyP4").build()
 
     app.add_handler(CommandHandler("in", in_command))
     app.add_handler(CommandHandler("out", out_command))
